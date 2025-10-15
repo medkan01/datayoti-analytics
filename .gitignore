@@ -1,0 +1,246 @@
+# =============================================================================
+# DATAYOTI ANALYTICS - GITIGNORE
+# =============================================================================
+
+# =============================================================================
+# ENVIRONNEMENT ET CONFIGURATION SENSIBLE
+# =============================================================================
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Fichiers de configuration avec mots de passe
+config.ini
+config.yaml
+config.json
+secrets.yml
+secrets.yaml
+
+# =============================================================================
+# DBT SPÉCIFIQUE
+# =============================================================================
+# Target directory (compiled, run artifacts)
+target/
+dbt_packages/
+logs/
+
+# DBT artifacts générés
+manifest.json
+catalog.json
+run_results.json
+sources.json
+graph.gpickle
+graph_summary.json
+partial_parse.msgpack
+semantic_manifest.json
+
+# Profils DBT (peuvent contenir des credentials)
+profiles.yml
+.dbt/
+
+# =============================================================================
+# PYTHON / ANACONDA
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Anaconda
+.conda/
+.condarc
+
+# =============================================================================
+# JUPYTER NOTEBOOKS
+# =============================================================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.ipynb
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+.dockerignore
+docker-compose.override.yml
+
+# =============================================================================
+# LOGS ET DONNÉES TEMPORAIRES
+# =============================================================================
+*.log
+*.log.*
+logs/
+log/
+temp/
+tmp/
+cache/
+.cache/
+
+# Fichiers de données temporaires
+*.csv.tmp
+*.json.tmp
+*.parquet.tmp
+
+# =============================================================================
+# IDE ET ÉDITEURS
+# =============================================================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# SYSTÈME D'EXPLOITATION
+# =============================================================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# DONNÉES ET EXPORTS
+# =============================================================================
+# Fichiers de données volumineux
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.avro
+*.orc
+
+# Sauf exemples et seeds DBT
+!seeds/*.csv
+!seeds/**/*.csv
+!examples/*.csv
+!examples/**/*.csv
+
+# Exports et rapports
+exports/
+reports/
+output/
+results/
+
+# =============================================================================
+# SAUVEGARDES ET ARCHIVES
+# =============================================================================
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.rar
+*.7z
+
+# =============================================================================
+# TESTS ET COVERAGE
+# =============================================================================
+.coverage
+.pytest_cache/
+.tox/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# =============================================================================
+# DOCUMENTATION GÉNÉRÉE
+# =============================================================================
+docs/_build/
+site/
+_site/
+
+# =============================================================================
+# MONITORING ET MÉTRIQUES
+# =============================================================================
+# Prometheus
+*.metrics
+
+# Grafana datasources et dashboards temporaires
+grafana-storage/
