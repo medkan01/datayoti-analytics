@@ -1,0 +1,32 @@
+services:
+  datamart-db:
+    image: postgres:16
+    container_name: datayoti-datamart-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DM_PG_USER}
+      POSTGRES_PASSWORD: ${DM_PG_PASSWORD}
+      POSTGRES_DB: ${DM_PG_DATABASE}
+      # Configuration UTC pour cohérence avec l'environnement OLTP
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "${DM_PG_PORT}:5432"
+    volumes:
+      - datamart_data:/var/lib/postgresql/data
+    networks:
+      - analytics-net
+      - mqtt-net  # Permet à Grafana OLTP d'accéder au Data Mart
+
+networks:
+  analytics-net:
+    name: datayoti-analytics-network
+    driver: bridge
+  # Réseau externe pour se connecter au Grafana OLTP
+  mqtt-net:
+    external: true
+    name: mqtt-network
+
+volumes:
+  datamart_data:
+    name: datayoti-datamart-data
