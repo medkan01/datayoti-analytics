@@ -1,0 +1,106 @@
+models:
+  - name: stg_devices
+    description: "Modèle de staging pour les appareils IoT avec nettoyage et standardisation des types de données."
+    columns:
+      - name: device_id
+        description: "Identifiant technique unique de l'appareil (entier)."
+        tests:
+          - not_null
+          - unique
+      - name: mac_addr
+        description: "Adresse MAC de l'appareil au format standard (XX:XX:XX:XX:XX:XX)."
+        tests:
+          - not_null
+          - unique
+      - name: site_ref
+        description: "Référence du site auquel l'appareil est associé."
+        tests:
+          - not_null
+      - name: created_ts
+        description: "Horodatage de création de l'appareil dans le système."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de l'appareil."
+        tests:
+          - not_null
+
+  - name: stg_device_heartbeats
+    description: "Modèle de staging pour les données de santé des appareils (heartbeats) avec nettoyage et standardisation."
+    columns:
+      - name: event_ts
+        description: "Horodatage de l'événement heartbeat."
+        tests:
+          - not_null
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil émetteur au format standard (XX:XX:XX:XX:XX:XX)."
+        tests:
+          - not_null
+      - name: site_ref
+        description: "Référence du site de l'appareil."
+        tests:
+          - not_null
+      - name: rssi_dbm
+        description: "Puissance du signal reçu en dBm."
+        tests:
+          - not_null
+      - name: free_heap_bytes
+        description: "Mémoire heap libre disponible en octets."
+      - name: uptime_secs
+        description: "Temps de fonctionnement de l'appareil en secondes."
+      - name: min_heap_bytes
+        description: "Minimum de mémoire heap atteint en octets."
+      - name: ntp_sync
+        description: "Indicateur de synchronisation NTP (true/false)."
+      - name: reception_ts
+        description: "Horodatage de réception du message par le broker."
+        tests:
+          - not_null
+
+  - name: stg_sensor_data
+    description: "Modèle de staging pour les données de capteurs (température et humidité) avec nettoyage et standardisation."
+    columns:
+      - name: event_ts
+        description: "Horodatage de la mesure du capteur."
+        tests:
+          - not_null
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil capteur au format standard (XX:XX:XX:XX:XX:XX)."
+        tests:
+          - not_null
+      - name: temperature_celsius
+        description: "Température mesurée en degrés Celsius."
+        tests:
+          - not_null
+      - name: humidity_percentage
+        description: "Humidité relative mesurée en pourcentage."
+        tests:
+          - not_null
+      - name: reception_ts
+        description: "Horodatage de réception du message par le broker."
+
+  - name: stg_sites
+    description: "Modèle de staging pour les sites avec nettoyage et standardisation des types de données."
+    columns:
+      - name: site_id
+        description: "Identifiant technique unique du site (entier)."
+        tests:
+          - not_null
+          - unique
+      - name: site_ref
+        description: "Référence métier du site (code court)."
+        tests:
+          - not_null
+          - unique
+      - name: site_name
+        description: "Nom du site."
+      - name: description
+        description: "Description détaillée du site."
+      - name: created_ts
+        description: "Horodatage de création du site dans le système."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour du site."
+        tests:
+          - not_null

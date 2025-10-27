@@ -1,0 +1,119 @@
+version: 2
+
+sources:
+  - name: raw_iot
+    schema: raw
+    description: "Zone brute du système OLTP (Raspberry PI + capteurs). Données copiées telles quelles sans transformation métier."
+    tables:
+
+      - name: raw_device_heartbeats
+        description: "Données brutes des signaux de vie des dispositifs IoT. (grain: minute)"
+        columns:
+          - name: time
+            description: "Horodatage de l'envoie des informations d'états du dispositif (peut être différent de la réception)."
+            tests:
+              - not_null
+          - name: device_id
+            description: "Identifiant unique du dispositif (adresse MAC)."
+            tests:
+              - not_null
+          - name: site_id
+            description: "Identifiant du site auquel le dispositif est rattaché."
+            tests:
+              - not_null
+          - name: rssi
+            description: "Force du signal reçu (Received Signal Strength Indicator)."
+            tests:
+              - not_null
+          - name: free_heap
+            description: "Mémoire libre restante sur le dispositif (en octets)."
+          - name: uptime
+            description: "Temps de fonctionnement du dispositif depuis son dernier redémarrage (en secondes)."
+          - name: min_heap
+            description: "Mémoire libre minimale enregistrée depuis le dernier redémarrage (en octets)."
+          - name: ntp_sync
+            description: "Indicateur de synchronisation NTP (True si synchronisé, False sinon)."
+            tests:
+              - not_null
+          - name: reception_time
+            description: "Horodatage de la réception des données par le serveur."
+            tests:
+              - not_null
+
+      - name: raw_devices
+        description: "Dispositifs IoT déployés sur les sites."
+        columns:
+          - name: id
+            description: "Identifiant unique du dispositif dans la base de données."
+            tests:
+              - unique
+              - not_null
+          - name: device_id
+            description: "Identifiant unique du dispositif (adresse MAC)."
+            tests:
+              - unique
+              - not_null
+          - name: site_id
+            description: "Identifiant du site auquel le dispositif est rattaché."
+            tests:
+              - not_null
+          - name: created_at
+            description: "Horodatage de la création de l'enregistrement."
+            tests:
+              - not_null
+          - name: updated_at
+            description: "Horodatage de la dernière mise à jour de l'enregistrement."
+            tests:
+              - not_null
+
+      - name: raw_sensor_data
+        description: "Données brutes des capteurs IoT. (grain: minute)"
+        columns:
+          - name: time
+            description: "Horodatage de la lecture du capteur."
+            tests:
+              - not_null
+          - name: device_id
+            description: "Identifiant unique du dispositif (adresse MAC)."
+            tests:
+              - not_null
+          - name: temperature
+            description: "Lecture de la température (en degrés Celsius)."
+            tests:
+              - not_null
+          - name: humidity
+            description: "Lecture de l'humidité (en pourcentage)."
+            tests:
+              - not_null
+          - name: reception_time
+            description: "Horodatage de la réception des données par le serveur."
+            tests:
+              - not_null        
+
+      - name: raw_sites
+        description: "Sites physiques où les dispositifs IoT sont déployés."
+        columns:
+          - name: id
+            description: "Identifiant unique du site dans la base de données."
+            tests:
+              - unique
+              - not_null
+          - name: site_id
+            description: "Identifiant du site (code alphanumérique)."
+            tests:
+              - unique
+              - not_null
+          - name: site_name
+            description: "Nom du site."
+            tests:
+              - not_null
+          - name: description
+            description: "Description du site."
+          - name: created_at
+            description: "Horodatage de la création de l'enregistrement."
+            tests:
+              - not_null
+          - name: updated_at
+            description: "Horodatage de la dernière mise à jour de l'enregistrement."
+            tests:
+              - not_null
