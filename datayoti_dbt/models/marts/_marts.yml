@@ -1,0 +1,123 @@
+models:
+  - name: dim_sites
+    description: "Table dimensionnelle des sites où les appareils sont déployés. Implémente SCD2 pour le suivi des changements historiques basé sur les snapshots dbt."
+    columns:
+      - name: site_sk
+        description: "Clé surrogate unique de la dimension du site pour le DWH. C'est cette clé qui sera utilisée dans les faits pour référencer un site."
+        tests:
+          - not_null
+          - unique
+      
+      - name: site_source_id
+        description: "Identifiant technique unique du site, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: site_ref
+        description: "Référence métier du site, utilisée pour l'identification dans les systèmes métier."
+        tests:
+          - not_null
+      
+      - name: site_name
+        description: "Nom convivial du site pour une identification facile."
+      
+      - name: site_description
+        description: "Description détaillée du site."
+      
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
+        tests:
+          - not_null
+
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel)."
+
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour ce site."
+        tests:
+          - not_null
+
+  # - name: dim_sites
+  #   description: "Table dimensionnelle des sites où les appareils sont déployés. Implémente SCD2 pour le suivi des changements historiques."
+  #   columns:
+  #     - name: site_sk
+  #       description: "Clé surrogate unique de la dimension du site pour le DWH. C'est cette clé qui sera utilisée dans les faits pour référencer un site."
+  #       tests:
+  #         - not_null
+  #         - unique
+      
+  #     - name: site_source_id
+  #       description: "Identifiant technique unique du site, provenant de la source brute."
+  #       tests:
+  #         - not_null
+      
+  #     - name: site_ref
+  #       description: "Référence métier du site, utilisée pour l'identification dans les systèmes métier."
+  #       tests:
+  #         - not_null
+      
+  #     - name: site_name
+  #       description: "Nom convivial du site pour une identification facile."
+      
+  #     - name: site_description
+  #       description: "Description détaillée du site."
+      
+  #     - name: valid_from_ts
+  #       description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
+  #       tests:
+  #         - not_null
+
+  #     - name: valid_to_ts
+  #       description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel)."
+
+  #     - name: is_current
+  #       description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour ce site."
+  #       tests:
+  #         - not_null
+
+  #     - name: first_seen_ts
+  #       description: "Horodatage du premier enregistrement du site dans le système."
+  #       tests:
+  #         - not_null
+
+  #     - name: last_seen_ts
+  #       description: "Horodatage du dernier enregistrement du site dans le système."
+  #       tests:
+  #         - not_null
+
+  - name: dim_devices
+    description: "Table dimensionnelle des appareils gérés par le système. Implémente SCD2 pour le suivi des changements au fil du temps basé sur les snapshots dbt."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate unique de la dimension de l'appareil pour le DWH. C'est cette clé qui sera utilisée dans les faits pour référencer un appareil."
+        tests:
+          - not_null
+          - unique
+      
+      - name: device_source_id
+        description: "Identifiant technique unique de l'appareil, issu de la source brute."
+        tests:
+          - not_null
+      
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
+        tests:
+          - not_null
+    
+      - name: site_source_id
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
+        tests:
+          - not_null
+
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel)."
+        
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cet appareil."
+        tests:
+          - not_null
