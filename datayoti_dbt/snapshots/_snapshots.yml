@@ -1,0 +1,97 @@
+version: 2
+
+snapshots:
+  - name: sites_snapshot
+    description: "Snapshot des sites implémentant SCD2 automatiquement. Capture tous les changements sur les attributs des sites avec horodatage."
+    columns:
+      - name: site_source_id
+        description: "Identifiant technique unique du site, provenant de la source brute. Utilisé comme clé unique pour le snapshot."
+        tests:
+          - not_null
+      
+      - name: site_ref
+        description: "Référence métier du site (code court)."
+        tests:
+          - not_null
+      
+      - name: site_name
+        description: "Nom du site."
+      
+      - name: site_description
+        description: "Description détaillée du site."
+      
+      - name: created_ts
+        description: "Horodatage de création du site dans le système source."
+        tests:
+          - not_null
+      
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour du site dans le système source. Utilisé par la stratégie timestamp du snapshot."
+        tests:
+          - not_null
+      
+      - name: dbt_scd_id
+        description: "Clé surrogate générée automatiquement par dbt pour chaque version de l'enregistrement."
+        tests:
+          - not_null
+          - unique
+      
+      - name: dbt_updated_at
+        description: "Horodatage de création de cette version de l'enregistrement par le snapshot dbt."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_from
+        description: "Horodatage indiquant à partir de quand cette version est valide (généré automatiquement par dbt)."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_to
+        description: "Horodatage indiquant jusqu'à quand cette version est valide (NULL pour la version actuelle, généré automatiquement par dbt)."
+
+  - name: devices_snapshot
+    description: "Snapshot des appareils implémentant SCD2 automatiquement. Capture tous les changements sur les attributs des appareils avec horodatage."
+    columns:
+      - name: device_source_id
+        description: "Identifiant technique unique de l'appareil, provenant de la source brute. Utilisé comme clé unique pour le snapshot."
+        tests:
+          - not_null
+      
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
+        tests:
+          - not_null
+      
+      - name: site_source_id
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: created_ts
+        description: "Horodatage de création de l'appareil dans le système source."
+        tests:
+          - not_null
+      
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de l'appareil dans le système source. Utilisé par la stratégie timestamp du snapshot."
+        tests:
+          - not_null
+      
+      - name: dbt_scd_id
+        description: "Clé surrogate générée automatiquement par dbt pour chaque version de l'enregistrement."
+        tests:
+          - not_null
+          - unique
+      
+      - name: dbt_updated_at
+        description: "Horodatage de création de cette version de l'enregistrement par le snapshot dbt."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_from
+        description: "Horodatage indiquant à partir de quand cette version est valide (généré automatiquement par dbt)."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_to
+        description: "Horodatage indiquant jusqu'à quand cette version est valide (NULL pour la version actuelle, généré automatiquement par dbt)."
