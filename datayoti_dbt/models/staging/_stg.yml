@@ -2,12 +2,12 @@ models:
   - name: stg_devices
     description: "Modèle de staging pour les appareils IoT avec nettoyage et standardisation des types de données."
     columns:
-      - name: device_id
+      - name: device_source_id
         description: "Identifiant technique unique de l'appareil (entier)."
         tests:
           - not_null
           - unique
-      - name: mac_addr
+      - name: device_mac_addr
         description: "Adresse MAC de l'appareil au format standard (XX:XX:XX:XX:XX:XX)."
         tests:
           - not_null
@@ -82,8 +82,8 @@ models:
   - name: stg_sites
     description: "Modèle de staging pour les sites avec nettoyage et standardisation des types de données."
     columns:
-      - name: site_id
-        description: "Identifiant technique unique du site (entier)."
+      - name: site_source_id
+        description: "Identifiant technique unique du site (entier), provenant de la source brute."
         tests:
           - not_null
           - unique
@@ -94,7 +94,7 @@ models:
           - unique
       - name: site_name
         description: "Nom du site."
-      - name: description
+      - name: site_description
         description: "Description détaillée du site."
       - name: created_ts
         description: "Horodatage de création du site dans le système."
