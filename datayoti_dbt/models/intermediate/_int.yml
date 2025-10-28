@@ -1,4 +1,35 @@
 models:
+  - name: int_sites_scd2
+    description: "Modèle intermédiaire implémentant SCD2 (Slowly Changing Dimension Type 2) pour les sites basé sur les snapshots dbt."
+    columns:
+      - name: site_sk
+        description: "Clé surrogate unique pour la dimension site dans le DWH (générée automatiquement par le snapshot dbt)."
+        tests:
+          - not_null
+          - unique
+      - name: site_source_id
+        description: "Identifiant technique unique du site, provenant de la source brute."
+        tests:
+          - not_null
+      - name: site_ref
+        description: "Référence métier du site (code court)."
+        tests:
+          - not_null
+      - name: site_name
+        description: "Nom du site."
+      - name: site_description
+        description: "Description détaillée du site."
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide (généré par le snapshot dbt)."
+        tests:
+          - not_null
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel, généré par le snapshot dbt)."
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour ce site (calculé à partir de valid_to_ts)."
+        tests:
+          - not_null
+
   - name: int_devices
     description: "Modèle intermédiaire pour les appareils avec des informations nettoyées et enrichies."
     columns:
@@ -7,17 +38,54 @@ models:
         tests:
           - not_null
           - unique
-      - name: mac_addr
+      - name: device_mac_addr
         description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
         tests:
           - not_null
           - unique
       - name: site_source_id
         description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
-      - name: first_seen_ts
-        description: "Horodatage du premier enregistrement de l'appareil."
-      - name: last_seen_ts
-        description: "Horodatage du dernier enregistrement de l'appareil."
+        tests:
+          - not_null
+      - name: created_ts
+        description: "Horodatage de création de l'appareil dans le système."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de l'appareil."
+        tests:
+          - not_null
+
+  - name: int_devices_scd2
+    description: "Modèle intermédiaire implémentant SCD2 (Slowly Changing Dimension Type 2) pour les appareils basé sur les snapshots dbt."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate unique pour la dimension device dans le DWH (générée automatiquement par le snapshot dbt)."
+        tests:
+          - not_null
+          - unique
+      - name: device_source_id
+        description: "Identifiant technique unique de l'appareil, provenant de la source brute."
+        tests:
+          - not_null
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
+        tests:
+          - not_null
+      - name: site_source_id
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
+        tests:
+          - not_null
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide (généré par le snapshot dbt)."
+        tests:
+          - not_null
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel, généré par le snapshot dbt)."
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cet appareil (calculé à partir de valid_to_ts)."
+        tests:
+          - not_null
   
   - name: int_hourly_sensor_health
     description: "Modèle intermédiaire pour les métriques de santé des capteurs agrégées par heure."
