@@ -31,7 +31,7 @@ models:
           - not_null
 
   - name: int_devices
-    description: "Modèle intermédiaire pour les appareils avec des informations nettoyées et enrichies."
+    description: "Modèle intermédiaire pour les appareils avec des informations nettoyées et enrichies. Utilise LEFT JOIN avec sites pour préserver tous les devices."
     columns:
       - name: device_source_id
         description: "Identifiant technique unique de l'appareil, issu de la source brute."
@@ -44,9 +44,8 @@ models:
           - not_null
           - unique
       - name: site_source_id
-        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
-        tests:
-          - not_null
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Peut être NULL si le site n'existe pas dans stg_sites."
+        # Retiré not_null car LEFT JOIN peut donner NULL
       - name: created_ts
         description: "Horodatage de création de l'appareil dans le système."
         tests:
@@ -164,3 +163,93 @@ models:
           combination_of_columns:
             - device_id
             - event_hour_ts
+
+  - name: int_daily_sensor_reading
+    description: "Modèle intermédiaire pour les lectures de capteurs (température et humidité) agrégées par jour. Utilise des jointures temporelles SCD2 avec les dimensions devices et sites."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate de l'appareil (référence vers dim_devices)."
+        tests:
+          - not_null
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+      - name: event_day_ts
+        description: "Date de l'événement tronquée au jour."
+        tests:
+          - not_null
+      - name: avg_temperature_celsius
+        description: "Température moyenne en degrés Celsius pour la journée."
+      - name: min_temperature_celsius
+        description: "Température minimale en degrés Celsius pour la journée."
+      - name: max_temperature_celsius
+        description: "Température maximale en degrés Celsius pour la journée."
+      - name: avg_humidity_percentage
+        description: "Humidité moyenne en pourcentage pour la journée."
+      - name: min_humidity_percentage
+        description: "Humidité minimale en pourcentage pour la journée."
+      - name: max_humidity_percentage
+        description: "Humidité maximale en pourcentage pour la journée."
+      - name: total_readings
+        description: "Nombre total de lectures de capteurs pour la journée."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - device_sk
+            - site_sk
+            - event_day_ts
+
+  - name: int_daily_sensor_health
+    description: "Modèle intermédiaire pour les métriques de santé des appareils agrégées par jour. Utilise des jointures temporelles SCD2 avec les dimensions devices et sites."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate de l'appareil (référence vers dim_devices)."
+        tests:
+          - not_null
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+      - name: event_day_ts
+        description: "Date de l'événement tronquée au jour pour l'agrégation."
+        tests:
+          - not_null
+      - name: avg_rssi_dbm
+        description: "Moyenne du signal RSSI en dBm pour la journée."
+      - name: min_rssi_dbm
+        description: "Valeur minimale du signal RSSI en dBm pour la journée."
+      - name: max_rssi_dbm
+        description: "Valeur maximale du signal RSSI en dBm pour la journée."
+      - name: avg_free_heap_bytes
+        description: "Moyenne de la mémoire heap libre en octets pour la journée."
+      - name: min_free_heap_bytes
+        description: "Valeur minimale de la mémoire heap libre en octets pour la journée."
+      - name: max_free_heap_bytes
+        description: "Valeur maximale de la mémoire heap libre en octets pour la journée."
+      - name: avg_min_heap_bytes
+        description: "Moyenne du minimum de mémoire heap atteint en octets pour la journée."
+      - name: min_min_heap_bytes
+        description: "Valeur minimale du minimum de mémoire heap atteint en octets pour la journée."
+      - name: max_min_heap_bytes
+        description: "Valeur maximale du minimum de mémoire heap atteint en octets pour la journée."
+      - name: avg_uptime_secs
+        description: "Moyenne du temps de fonctionnement en secondes pour la journée."
+      - name: min_uptime_secs
+        description: "Valeur minimale du temps de fonctionnement en secondes pour la journée."
+      - name: max_uptime_secs
+        description: "Valeur maximale du temps de fonctionnement en secondes pour la journée."
+      - name: ntp_sync_count
+        description: "Nombre de heartbeats avec synchronisation NTP active pour la journée."
+      - name: total_heartbeats
+        description: "Nombre total de heartbeats reçus pour la journée."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - device_sk
+            - site_sk
+            - event_day_ts

@@ -37,54 +37,6 @@ models:
         tests:
           - not_null
 
-  # - name: dim_sites
-  #   description: "Table dimensionnelle des sites où les appareils sont déployés. Implémente SCD2 pour le suivi des changements historiques."
-  #   columns:
-  #     - name: site_sk
-  #       description: "Clé surrogate unique de la dimension du site pour le DWH. C'est cette clé qui sera utilisée dans les faits pour référencer un site."
-  #       tests:
-  #         - not_null
-  #         - unique
-      
-  #     - name: site_source_id
-  #       description: "Identifiant technique unique du site, provenant de la source brute."
-  #       tests:
-  #         - not_null
-      
-  #     - name: site_ref
-  #       description: "Référence métier du site, utilisée pour l'identification dans les systèmes métier."
-  #       tests:
-  #         - not_null
-      
-  #     - name: site_name
-  #       description: "Nom convivial du site pour une identification facile."
-      
-  #     - name: site_description
-  #       description: "Description détaillée du site."
-      
-  #     - name: valid_from_ts
-  #       description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
-  #       tests:
-  #         - not_null
-
-  #     - name: valid_to_ts
-  #       description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel)."
-
-  #     - name: is_current
-  #       description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour ce site."
-  #       tests:
-  #         - not_null
-
-  #     - name: first_seen_ts
-  #       description: "Horodatage du premier enregistrement du site dans le système."
-  #       tests:
-  #         - not_null
-
-  #     - name: last_seen_ts
-  #       description: "Horodatage du dernier enregistrement du site dans le système."
-  #       tests:
-  #         - not_null
-
   - name: dim_devices
     description: "Table dimensionnelle des appareils gérés par le système. Implémente SCD2 pour le suivi des changements au fil du temps basé sur les snapshots dbt."
     columns:
@@ -105,9 +57,8 @@ models:
           - not_null
     
       - name: site_source_id
-        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
-        tests:
-          - not_null
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Peut être NULL si le device n'a pas de site associé valide."
+        # Retiré not_null car peut être NULL si le site n'existe pas
       
       - name: valid_from_ts
         description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
@@ -121,3 +72,133 @@ models:
         description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cet appareil."
         tests:
           - not_null
+
+  - name: dim_dates
+    description: "Table dimensionnelle des dates générée automatiquement par le package dbt-date. Couvre la période de 1990 à 2050."
+    columns:
+      - name: date_sk
+        description: "Clé surrogate unique pour la dimension date (format YYYYMMDD)."
+        tests:
+          - not_null
+          - unique
+      - name: date_ts
+        description: "Date au format timestamp."
+        tests:
+          - not_null
+          - unique
+      - name: year_number
+        description: "Numéro de l'année (ex: 2023)."
+      - name: month_number
+        description: "Numéro du mois (1-12)."
+      - name: day_of_month
+        description: "Jour du mois (1-31)."
+      - name: day_of_week
+        description: "Jour de la semaine (1=Dimanche, 7=Samedi)."
+      - name: week_start_date
+        description: "Date de début de la semaine."
+      - name: week_end_date
+        description: "Date de fin de la semaine."
+      - name: month_name
+        description: "Nom du mois (ex: 'January')."
+      - name: day_name
+        description: "Nom du jour (ex: 'Monday')."
+
+  - name: fct_daily_sensor_reading
+    description: "Table de faits pour les lectures quotidiennes des capteurs de température et d'humidité. Basée sur int_daily_sensor_reading avec jointures temporelles SCD2."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate de l'appareil (référence vers dim_devices)."
+        tests:
+          - not_null
+          # Commenté temporairement car cela génère un test inverse sur dim_devices
+          # qui échoue si fct_daily_sensor_reading n'existe pas encore
+          # - relationships:
+          #     to: ref('dim_devices')
+          #     field: device_sk
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+          # Commenté temporairement car cela génère un test inverse sur dim_sites
+          # qui échoue si fct_daily_sensor_reading n'existe pas encore
+          # - relationships:
+          #     to: ref('dim_sites')
+          #     field: site_sk
+      - name: event_day_ts
+        description: "Date de l'événement tronquée au jour."
+        tests:
+          - not_null
+      - name: avg_temperature_celsius
+        description: "Température moyenne mesurée en degrés Celsius pour la journée."
+      - name: min_temperature_celsius
+        description: "Température minimale mesurée en degrés Celsius pour la journée."
+      - name: max_temperature_celsius
+        description: "Température maximale mesurée en degrés Celsius pour la journée."
+      - name: avg_humidity_percentage
+        description: "Humidité relative moyenne mesurée en pourcentage pour la journée."
+      - name: min_humidity_percentage
+        description: "Humidité relative minimale mesurée en pourcentage pour la journée."
+      - name: max_humidity_percentage
+        description: "Humidité relative maximale mesurée en pourcentage pour la journée."
+      - name: total_readings
+        description: "Nombre total de lectures de capteurs agrégées pour cette journée."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - device_sk
+            - site_sk
+            - event_day_ts
+
+  - name: fct_daily_sensor_health
+    description: "Table de faits pour les métriques de santé quotidiennes des appareils IoT. Basée sur int_daily_sensor_health avec jointures temporelles SCD2."
+    columns:
+      - name: device_sk
+        description: "Clé surrogate de l'appareil (référence vers dim_devices)."
+        tests:
+          - not_null
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+      - name: event_day_ts
+        description: "Date de l'événement tronquée au jour."
+        tests:
+          - not_null
+      - name: avg_rssi_dbm
+        description: "Moyenne du signal RSSI en dBm pour la journée."
+      - name: min_rssi_dbm
+        description: "Valeur minimale du signal RSSI en dBm pour la journée."
+      - name: max_rssi_dbm
+        description: "Valeur maximale du signal RSSI en dBm pour la journée."
+      - name: avg_free_heap_bytes
+        description: "Moyenne de la mémoire heap libre en octets pour la journée."
+      - name: min_free_heap_bytes
+        description: "Valeur minimale de la mémoire heap libre en octets pour la journée."
+      - name: max_free_heap_bytes
+        description: "Valeur maximale de la mémoire heap libre en octets pour la journée."
+      - name: avg_min_heap_bytes
+        description: "Moyenne du minimum de mémoire heap atteint en octets pour la journée."
+      - name: min_min_heap_bytes
+        description: "Valeur minimale du minimum de mémoire heap atteint en octets pour la journée."
+      - name: max_min_heap_bytes
+        description: "Valeur maximale du minimum de mémoire heap atteint en octets pour la journée."
+      - name: avg_uptime_secs
+        description: "Moyenne du temps de fonctionnement en secondes pour la journée."
+      - name: min_uptime_secs
+        description: "Valeur minimale du temps de fonctionnement en secondes pour la journée."
+      - name: max_uptime_secs
+        description: "Valeur maximale du temps de fonctionnement en secondes pour la journée."
+      - name: ntp_sync_count
+        description: "Nombre de heartbeats avec synchronisation NTP active pour la journée."
+      - name: total_heartbeats
+        description: "Nombre total de heartbeats reçus pour la journée."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - device_sk
+            - site_sk
+            - event_day_ts

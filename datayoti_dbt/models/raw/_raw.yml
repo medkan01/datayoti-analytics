@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: raw_devices
+    description: "Table de stockage brute pour les appareils IoT. Structure vide utilisée pour initialiser les tables cibles lors de l'ingestion."
+    columns:
+      - name: id
+        description: "Identifiant technique unique de l'appareil (format texte brut)."
+      - name: device_id
+        description: "Identifiant métier de l'appareil, généralement l'adresse MAC (format texte brut)."
+      - name: site_id
+        description: "Identifiant du site auquel l'appareil est associé (format texte brut)."
+      - name: created_at
+        description: "Horodatage de création de l'appareil (format texte brut)."
+      - name: updated_at
+        description: "Horodatage de dernière mise à jour de l'appareil (format texte brut)."
+
+  - name: raw_sites
+    description: "Table de stockage brute pour les sites. Structure vide utilisée pour initialiser les tables cibles lors de l'ingestion."
+    columns:
+      - name: id
+        description: "Identifiant technique unique du site (format texte brut)."
+      - name: site_id
+        description: "Identifiant métier du site (format texte brut)."
+      - name: site_name
+        description: "Nom du site (format texte brut)."
+      - name: description
+        description: "Description du site (format texte brut)."
+      - name: created_at
+        description: "Horodatage de création du site (format texte brut)."
+      - name: updated_at
+        description: "Horodatage de dernière mise à jour du site (format texte brut)."
+
+  - name: raw_sensor_data
+    description: "Table de stockage brute pour les données de capteurs (température, humidité). Structure vide utilisée pour initialiser les tables cibles lors de l'ingestion."
+    columns:
+      - name: time
+        description: "Horodatage de la mesure du capteur (format texte brut)."
+      - name: device_id
+        description: "Identifiant de l'appareil émetteur (format texte brut)."
+      - name: temperature
+        description: "Valeur de température mesurée (format texte brut)."
+      - name: humidity
+        description: "Valeur d'humidité mesurée (format texte brut)."
+      - name: reception_time
+        description: "Horodatage de réception par le broker MQTT (format texte brut)."
+
+  - name: raw_device_heartbeats
+    description: "Table de stockage brute pour les données de santé des appareils (heartbeats). Structure vide utilisée pour initialiser les tables cibles lors de l'ingestion."
+    columns:
+      - name: time
+        description: "Horodatage de l'événement heartbeat (format texte brut)."
+      - name: device_id
+        description: "Identifiant de l'appareil émetteur (format texte brut)."
+      - name: site_id
+        description: "Identifiant du site de l'appareil (format texte brut)."
+      - name: rssi
+        description: "Puissance du signal reçu en dBm (format texte brut)."
+      - name: free_heap
+        description: "Mémoire heap libre disponible en octets (format texte brut)."
+      - name: uptime
+        description: "Temps de fonctionnement de l'appareil en secondes (format texte brut)."
+      - name: min_heap
+        description: "Minimum de mémoire heap atteint en octets (format texte brut)."
+      - name: ntp_sync
+        description: "Indicateur de synchronisation NTP (format texte brut)."
+      - name: reception_time
+        description: "Horodatage de réception par le broker MQTT (format texte brut)."
