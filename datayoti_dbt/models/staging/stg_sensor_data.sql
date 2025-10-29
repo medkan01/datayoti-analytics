@@ -4,10 +4,8 @@ select
     cast(temperature as float) as temperature_celsius,
     cast(humidity as float) as humidity_percentage,
     cast(reception_time as timestamp) as reception_ts
-from
-    {{ source('raw_iot', 'raw_sensor_data') }}
-where
-    time is not null
-    and device_id is not null
-    and temperature is not null
-    and humidity is not null
+from {{ source('raw_iot', 'raw_sensor_data') }}
+where time is not null
+and device_id is not null
+and temperature is not null
+and humidity is not null
