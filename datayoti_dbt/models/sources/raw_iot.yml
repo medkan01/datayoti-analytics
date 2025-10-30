@@ -13,12 +13,8 @@ sources:
             description: "Horodatage de l'envoie des informations d'états du dispositif (peut être différent de la réception)."
             tests:
               - not_null
-          - name: device_id
-            description: "Identifiant unique du dispositif (adresse MAC)."
-            tests:
-              - not_null
-          - name: site_id
-            description: "Identifiant du site auquel le dispositif est rattaché."
+          - name: device_mac_addr
+            description: "Adresse MAC du dispositif (identifiant unique)."
             tests:
               - not_null
           - name: rssi
@@ -48,13 +44,13 @@ sources:
             tests:
               - unique
               - not_null
-          - name: device_id
-            description: "Identifiant unique du dispositif (adresse MAC)."
+          - name: device_mac_addr
+            description: "Adresse MAC du dispositif (identifiant unique métier)."
             tests:
               - unique
               - not_null
-          - name: site_id
-            description: "Identifiant du site auquel le dispositif est rattaché."
+          - name: site_ref
+            description: "Référence du site auquel le dispositif est rattaché."
             tests:
               - not_null
           - name: created_at
@@ -73,8 +69,8 @@ sources:
             description: "Horodatage de la lecture du capteur."
             tests:
               - not_null
-          - name: device_id
-            description: "Identifiant unique du dispositif (adresse MAC)."
+          - name: device_mac_addr
+            description: "Adresse MAC du dispositif (identifiant unique)."
             tests:
               - not_null
           - name: temperature
@@ -98,8 +94,8 @@ sources:
             tests:
               - unique
               - not_null
-          - name: site_id
-            description: "Identifiant du site (code alphanumérique)."
+          - name: site_ref
+            description: "Référence du site (code alphanumérique)."
             tests:
               - unique
               - not_null
