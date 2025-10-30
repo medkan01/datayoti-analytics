@@ -68,7 +68,7 @@ def ingest_raw_iot_data_dag():
         create_raw_sites = """
         CREATE TABLE IF NOT EXISTS raw.raw_sites (
             id TEXT,
-            site_id TEXT,
+            site_ref TEXT,
             site_name TEXT,
             description TEXT,
             created_at TEXT,
@@ -80,8 +80,8 @@ def ingest_raw_iot_data_dag():
         create_raw_devices = """
         CREATE TABLE IF NOT EXISTS raw.raw_devices (
             id TEXT,
-            device_id TEXT,
-            site_id TEXT,
+            device_mac_addr TEXT,
+            site_ref TEXT,
             created_at TEXT,
             updated_at TEXT
         );
@@ -91,8 +91,7 @@ def ingest_raw_iot_data_dag():
         create_raw_device_heartbeats = """
         CREATE TABLE IF NOT EXISTS raw.raw_device_heartbeats (
             time TEXT,
-            device_id TEXT,
-            site_id TEXT,
+            device_mac_addr TEXT,
             rssi TEXT,
             free_heap TEXT,
             uptime TEXT,
@@ -106,7 +105,7 @@ def ingest_raw_iot_data_dag():
         create_raw_sensor_data = """
         CREATE TABLE IF NOT EXISTS raw.raw_sensor_data (
             time TEXT,
-            device_id TEXT,
+            device_mac_addr TEXT,
             temperature TEXT,
             humidity TEXT,
             reception_time TEXT
@@ -155,7 +154,7 @@ def ingest_raw_iot_data_dag():
         if len(df_sites) > 0:
             for _, row in df_sites.iterrows():
                 # Vérifier si l'enregistrement existe déjà
-                check_query = f"SELECT COUNT(*) FROM raw.raw_sites WHERE site_id = '{row['site_id']}';"
+                check_query = f"SELECT COUNT(*) FROM raw.raw_sites WHERE site_ref = '{row['site_ref']}';"
                 exists = olap_hook.get_first(check_query)[0] > 0
                 
                 if exists:
@@ -165,7 +164,7 @@ def ingest_raw_iot_data_dag():
                     SET site_name = '{row['site_name']}',
                         description = '{row['description']}',
                         updated_at = '{row['updated_at']}'
-                    WHERE site_id = '{row['site_id']}';
+                    WHERE site_ref = '{row['site_ref']}';
                     """
                     olap_hook.run(update_query)
                 else:
@@ -206,16 +205,16 @@ def ingest_raw_iot_data_dag():
         if len(df_devices) > 0:
             for _, row in df_devices.iterrows():
                 # Vérifier si l'enregistrement existe déjà
-                check_query = f"SELECT COUNT(*) FROM raw.raw_devices WHERE device_id = '{row['device_id']}';"
+                check_query = f"SELECT COUNT(*) FROM raw.raw_devices WHERE device_mac_addr = '{row['device_mac_addr']}';"
                 exists = olap_hook.get_first(check_query)[0] > 0
                 
                 if exists:
                     # Mettre à jour l'enregistrement existant
                     update_query = f"""
                     UPDATE raw.raw_devices
-                    SET site_id = '{row['site_id']}',
+                    SET site_ref = '{row['site_ref']}',
                         updated_at = '{row['updated_at']}'
-                    WHERE device_id = '{row['device_id']}';
+                    WHERE device_mac_addr = '{row['device_mac_addr']}';
                     """
                     olap_hook.run(update_query)
                 else:
