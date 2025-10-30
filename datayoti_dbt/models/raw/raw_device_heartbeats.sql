@@ -2,8 +2,7 @@
 
 select
     cast(null as text) as time,
-    cast(null as text) as device_id,
-    cast(null as text) as site_id,
+    cast(null as text) as device_mac_addr,
     cast(null as text) as rssi,
     cast(null as text) as free_heap,
     cast(null as text) as uptime,
