@@ -6,10 +6,10 @@ models:
     columns:
       - name: id
         description: "Identifiant technique unique de l'appareil (format texte brut)."
-      - name: device_id
-        description: "Identifiant métier de l'appareil, généralement l'adresse MAC (format texte brut)."
-      - name: site_id
-        description: "Identifiant du site auquel l'appareil est associé (format texte brut)."
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil (format texte brut)."
+      - name: site_ref
+        description: "Référence du site auquel l'appareil est associé (format texte brut)."
       - name: created_at
         description: "Horodatage de création de l'appareil (format texte brut)."
       - name: updated_at
@@ -20,8 +20,8 @@ models:
     columns:
       - name: id
         description: "Identifiant technique unique du site (format texte brut)."
-      - name: site_id
-        description: "Identifiant métier du site (format texte brut)."
+      - name: site_ref
+        description: "Référence métier du site (format texte brut)."
       - name: site_name
         description: "Nom du site (format texte brut)."
       - name: description
@@ -36,8 +36,8 @@ models:
     columns:
       - name: time
         description: "Horodatage de la mesure du capteur (format texte brut)."
-      - name: device_id
-        description: "Identifiant de l'appareil émetteur (format texte brut)."
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil émetteur (format texte brut)."
       - name: temperature
         description: "Valeur de température mesurée (format texte brut)."
       - name: humidity
@@ -50,10 +50,8 @@ models:
     columns:
       - name: time
         description: "Horodatage de l'événement heartbeat (format texte brut)."
-      - name: device_id
-        description: "Identifiant de l'appareil émetteur (format texte brut)."
-      - name: site_id
-        description: "Identifiant du site de l'appareil (format texte brut)."
+      - name: device_mac_addr
+        description: "Adresse MAC de l'appareil émetteur (format texte brut)."
       - name: rssi
         description: "Puissance du signal reçu en dBm (format texte brut)."
       - name: free_heap
