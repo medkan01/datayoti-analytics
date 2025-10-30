@@ -1,9 +1,31 @@
+"""
+DAG DÉPRÉCIÉ - NE PLUS UTILISER
+
+Ce DAG a été déprécié le 2025-10-30 et remplacé par 3 DAGs séparés :
+- dbt_staging_pipeline
+- dbt_intermediate_pipeline  
+- dbt_marts_pipeline
+
+Ce fichier est conservé temporairement pour référence et sera supprimé
+une fois que les nouveaux DAGs auront été validés en production.
+"""
+
 import logging
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 
 logger = logging.getLogger(__name__)
+
+# Configuration de dépréciation
+DEPRECATION_DATE = datetime(2025, 10, 30)
+IS_DEPRECATED = True
+
+if IS_DEPRECATED:
+    logger.warning(
+        f"DAG 'transform_raw_to_mart_iot' est déprécié depuis le {DEPRECATION_DATE.strftime('%Y-%m-%d')}. "
+        "Utilisez les nouveaux DAGs modulaires à la place."
+    )
 
 default_args = {
     'owner': 'datayoti',
@@ -16,10 +38,27 @@ default_args = {
 dag = DAG(
     'transform_raw_to_mart_iot',
     default_args=default_args,
-    description='Pipeline complet de validation des données IoT - staging → intermediate → marts',
-    schedule="0 1 * * *",  # Tous les jours à 01:00 AM
+    description='[DEPRECATED] Pipeline complet de validation des données IoT - staging → intermediate → marts. Remplacé par 3 DAGs séparés.',
+    schedule=None,  # DEPRECATED: Désactivé - remplacé par des DAGs séparés
     catchup=False,
-    tags=["dbt", "iot", "data-quality", "end-to-end", "validation"],
+    tags=["dbt", "iot", "data-quality", "end-to-end", "validation", "deprecated"],
+    # Date de dépréciation pour suivi
+    doc_md="""
+    ## DAG DÉPRÉCIÉ
+    
+    **Date de dépréciation:** 2025-10-30
+    
+    **Raison:** Ce DAG monolithique a été séparé en 3 DAGs distincts pour améliorer la modularité et la maintenance.
+    
+    **DAGs de remplacement:**
+    - `dbt_staging_pipeline` - Pour les modèles staging
+    - `dbt_intermediate_pipeline` - Pour les modèles intermédiaires  
+    - `dbt_marts_pipeline` - Pour les modèles marts
+    
+    **Prochaines étapes:**
+    - Ce DAG sera supprimé après validation complète des nouveaux DAGs
+    - Historique des runs préservé pour audit
+    """,
 )
 
 # Commande de base pour dbt
