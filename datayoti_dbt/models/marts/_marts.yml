@@ -55,10 +55,12 @@ models:
         description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
         tests:
           - not_null
+          - valid_mac_address
     
       - name: site_source_id
-        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Peut être NULL si le device n'a pas de site associé valide."
-        # Retiré not_null car peut être NULL si le site n'existe pas
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Ne peut pas être NULL car provient d'int_devices qui filtre les devices sans site valide."
+        tests:
+          - not_null
       
       - name: valid_from_ts
         description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
@@ -110,20 +112,10 @@ models:
         description: "Clé surrogate de l'appareil (référence vers dim_devices)."
         tests:
           - not_null
-          # Commenté temporairement car cela génère un test inverse sur dim_devices
-          # qui échoue si fct_daily_sensor_reading n'existe pas encore
-          # - relationships:
-          #     to: ref('dim_devices')
-          #     field: device_sk
       - name: site_sk
         description: "Clé surrogate du site (référence vers dim_sites)."
         tests:
           - not_null
-          # Commenté temporairement car cela génère un test inverse sur dim_sites
-          # qui échoue si fct_daily_sensor_reading n'existe pas encore
-          # - relationships:
-          #     to: ref('dim_sites')
-          #     field: site_sk
       - name: event_day_ts
         description: "Date de l'événement tronquée au jour."
         tests:
