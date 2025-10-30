@@ -116,7 +116,7 @@ models:
         description: "Clé surrogate du site (référence vers dim_sites)."
         tests:
           - not_null
-      - name: event_day_ts
+      - name: event_day_sk
         description: "Date de l'événement tronquée au jour."
         tests:
           - not_null
@@ -141,7 +141,7 @@ models:
           combination_of_columns:
             - device_sk
             - site_sk
-            - event_day_ts
+            - event_day_sk
 
   - name: fct_daily_sensor_health
     description: "Table de faits pour les métriques de santé quotidiennes des appareils IoT. Basée sur int_daily_sensor_health avec jointures temporelles SCD2."
@@ -154,7 +154,7 @@ models:
         description: "Clé surrogate du site (référence vers dim_sites)."
         tests:
           - not_null
-      - name: event_day_ts
+      - name: event_day_sk
         description: "Date de l'événement tronquée au jour."
         tests:
           - not_null
@@ -188,9 +188,11 @@ models:
         description: "Nombre total de heartbeats reçus pour la journée."
         tests:
           - not_null
+      - name: heartbeat_coverage_percentage
+        description: "Pourcentage de couverture des heartbeats reçus par rapport au nombre attendu pour la journée."
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
             - device_sk
             - site_sk
-            - event_day_ts
+            - event_day_sk

@@ -31,7 +31,7 @@ with joined_data as (
 select
     jd.device_sk,
     jd.site_sk,
-    date_trunc('day', jd.event_ts) as event_day_ts,
+    date_trunc('day', jd.event_ts) as event_day_sk,
 
     avg(jd.rssi_dbm) as avg_rssi_dbm,
     min(jd.rssi_dbm) as min_rssi_dbm,
@@ -50,11 +50,15 @@ select
     max(jd.uptime_secs) as max_uptime_secs,
 
     sum(case when jd.ntp_sync then 1 else 0 end) as ntp_sync_count,
-    count(*) as total_heartbeats
+    count(*) as total_heartbeats,
+    count(*) * 100 / 1440 as heartbeat_coverage_percentage
 
 from joined_data as jd
+
+join {{ ref('dim_dates') }} as dd
+    on date_trunc('day', jd.event_ts) = dd.date_day
 
 group by
     jd.device_sk,
     jd.site_sk,
-    date_trunc('day', jd.event_ts)
+    event_day_sk

@@ -29,7 +29,7 @@ with joined_data as (
 select
     jd.device_sk,
     jd.site_sk,
-    date_trunc('day', jd.event_ts) as event_day_ts,
+    date_trunc('day', jd.event_ts) as event_day_sk,
 
     avg(jd.temperature_celsius) as avg_temperature_celsius,
     min(jd.temperature_celsius) as min_temperature_celsius,
@@ -43,7 +43,10 @@ select
 
 from joined_data as jd
 
+join {{ ref('dim_dates') }} as dd
+    on date_trunc('day', jd.event_ts) = dd.date_day
+
 group by
     jd.device_sk,
     jd.site_sk,
-    date_trunc('day', jd.event_ts)
+    event_day_sk
