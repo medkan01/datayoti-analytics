@@ -31,7 +31,7 @@ models:
           - not_null
 
   - name: int_devices
-    description: "Modèle intermédiaire pour les appareils avec des informations nettoyées et enrichies. Utilise LEFT JOIN avec sites pour préserver tous les devices."
+    description: "Modèle intermédiaire pour les appareils avec des informations nettoyées et enrichies. Filtre les devices qui ont un site_ref valide dans stg_sites."
     columns:
       - name: device_source_id
         description: "Identifiant technique unique de l'appareil, issu de la source brute."
@@ -43,9 +43,11 @@ models:
         tests:
           - not_null
           - unique
+          - valid_mac_address
       - name: site_source_id
-        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Peut être NULL si le site n'existe pas dans stg_sites."
-        # Retiré not_null car LEFT JOIN peut donner NULL
+        description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute. Ne peut pas être NULL car le modèle filtre les devices sans site valide."
+        tests:
+          - not_null
       - name: created_ts
         description: "Horodatage de création de l'appareil dans le système."
         tests:
@@ -71,6 +73,7 @@ models:
         description: "Adresse MAC de l'appareil. Correspond à l'identifiant métier utilisé."
         tests:
           - not_null
+          - valid_mac_address
       - name: site_source_id
         description: "Identifiant technique du site auquel l'appareil est associé, provenant de la source brute."
         tests:
@@ -85,84 +88,6 @@ models:
         description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cet appareil (calculé à partir de valid_to_ts)."
         tests:
           - not_null
-  
-  - name: int_hourly_sensor_health
-    description: "Modèle intermédiaire pour les métriques de santé des capteurs agrégées par heure."
-    columns:
-      - name: device_id
-        description: "Identifiant unique de l'appareil."
-        tests:
-          - not_null
-      - name: event_hour_ts
-        description: "Horodatage tronqué à l'heure pour l'agrégation des événements."
-        tests:
-          - not_null
-      - name: avg_rssi_dbm
-        description: "Moyenne du signal RSSI en dBm pour l'heure."
-      - name: min_rssi_dbm
-        description: "Valeur minimale du signal RSSI en dBm pour l'heure."
-      - name: max_rssi_dbm
-        description: "Valeur maximale du signal RSSI en dBm pour l'heure."
-      - name: avg_free_heap_bytes
-        description: "Moyenne de la mémoire heap libre en octets pour l'heure."
-      - name: min_free_heap_bytes
-        description: "Valeur minimale de la mémoire heap libre en octets pour l'heure."
-      - name: max_free_heap_bytes
-        description: "Valeur maximale de la mémoire heap libre en octets pour l'heure."
-      - name: avg_min_heap_bytes
-        description: "Moyenne du minimum de mémoire heap atteint en octets pour l'heure."
-      - name: min_min_heap_bytes
-        description: "Valeur minimale du minimum de mémoire heap atteint en octets pour l'heure."
-      - name: max_min_heap_bytes
-        description: "Valeur maximale du minimum de mémoire heap atteint en octets pour l'heure."
-      - name: avg_uptime_secs
-        description: "Moyenne du temps de fonctionnement en secondes pour l'heure."
-      - name: min_uptime_secs
-        description: "Valeur minimale du temps de fonctionnement en secondes pour l'heure."
-      - name: max_uptime_secs
-        description: "Valeur maximale du temps de fonctionnement en secondes pour l'heure."
-      - name: first_reception_hour_ts
-        description: "Premier horodatage de réception tronqué à l'heure."
-      - name: last_reception_hour_ts
-        description: "Dernier horodatage de réception tronqué à l'heure."
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - device_id
-            - event_hour_ts
-
-  - name: int_hourly_sensor_reading
-    description: "Modèle intermédiaire pour les lectures de capteurs (température et humidité) agrégées par heure."
-    columns:
-      - name: device_id
-        description: "Identifiant unique de l'appareil."
-        tests:
-          - not_null
-      - name: event_hour_ts
-        description: "Horodatage tronqué à l'heure pour l'agrégation des événements."
-        tests:
-          - not_null
-      - name: avg_temperature_celsius
-        description: "Température moyenne en degrés Celsius pour l'heure."
-      - name: min_temperature_celsius
-        description: "Température minimale en degrés Celsius pour l'heure."
-      - name: max_temperature_celsius
-        description: "Température maximale en degrés Celsius pour l'heure."
-      - name: avg_humidity_percentage
-        description: "Humidité moyenne en pourcentage pour l'heure."
-      - name: min_humidity_percentage
-        description: "Humidité minimale en pourcentage pour l'heure."
-      - name: max_humidity_percentage
-        description: "Humidité maximale en pourcentage pour l'heure."
-      - name: first_reception_hour_ts
-        description: "Premier horodatage de réception tronqué à l'heure (métrique de qualité d'ingestion)."
-      - name: last_reception_hour_ts
-        description: "Dernier horodatage de réception tronqué à l'heure (métrique de qualité d'ingestion)."
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - device_id
-            - event_hour_ts
 
   - name: int_daily_sensor_reading
     description: "Modèle intermédiaire pour les lectures de capteurs (température et humidité) agrégées par jour. Utilise des jointures temporelles SCD2 avec les dimensions devices et sites."
