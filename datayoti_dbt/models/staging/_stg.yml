@@ -12,6 +12,7 @@ models:
         tests:
           - not_null
           - unique
+          - valid_mac_address
       - name: site_ref
         description: "Référence du site auquel l'appareil est associé."
         tests:
@@ -36,20 +37,31 @@ models:
         description: "Adresse MAC de l'appareil émetteur au format standard (XX:XX:XX:XX:XX:XX)."
         tests:
           - not_null
-      - name: site_ref
-        description: "Référence du site de l'appareil."
-        tests:
-          - not_null
+          - valid_mac_address
       - name: rssi_dbm
         description: "Puissance du signal reçu en dBm."
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: -120
+              max_value: 0
       - name: free_heap_bytes
         description: "Mémoire heap libre disponible en octets."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1000000
       - name: uptime_secs
         description: "Temps de fonctionnement de l'appareil en secondes."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: min_heap_bytes
         description: "Minimum de mémoire heap atteint en octets."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1000000
       - name: ntp_sync
         description: "Indicateur de synchronisation NTP (true/false)."
       - name: reception_ts
@@ -68,16 +80,25 @@ models:
         description: "Adresse MAC de l'appareil capteur au format standard (XX:XX:XX:XX:XX:XX)."
         tests:
           - not_null
+          - valid_mac_address
       - name: temperature_celsius
         description: "Température mesurée en degrés Celsius."
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: -50
+              max_value: 80
       - name: humidity_percentage
         description: "Humidité relative mesurée en pourcentage."
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
       - name: reception_ts
         description: "Horodatage de réception du message par le broker."
+        tests:
+          - not_null
 
   - name: stg_sites
     description: "Modèle de staging pour les sites avec nettoyage et standardisation des types de données."
