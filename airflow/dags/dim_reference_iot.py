@@ -152,6 +152,78 @@ test_dim_devices = BashOperator(
 )
 
 # =====================================================
+# PIPELINE RÈGLES MÉTIER
+# =====================================================
+
+run_conformity_rules_seed = BashOperator(
+    task_id='run_conformity_rules_seed',
+    bash_command=f'{dbt_base_cmd} seed --select conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+run_stg_conformity_rules = BashOperator(
+    task_id='run_stg_conformity_rules',
+    bash_command=f'{dbt_base_cmd} run --select staging.stg_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+test_stg_conformity_rules = BashOperator(
+    task_id='test_stg_conformity_rules',
+    bash_command=f'{dbt_base_cmd} test --select staging.stg_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+run_int_conformity_rules = BashOperator(
+    task_id='run_int_conformity_rules',
+    bash_command=f'{dbt_base_cmd} run --select intermediate.int_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+test_int_conformity_rules = BashOperator(
+    task_id='test_int_conformity_rules',
+    bash_command=f'{dbt_base_cmd} test --select intermediate.int_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+run_conformity_rules_snapshot = BashOperator(
+    task_id='run_conformity_rules_snapshot',
+    bash_command=f'{dbt_base_cmd} snapshot --select conformity_rules_snapshot --profiles-dir profiles',
+    dag=dag,
+)
+
+test_conformity_rules_snapshot = BashOperator(
+    task_id='test_conformity_rules_snapshot',
+    bash_command=f'{dbt_base_cmd} test --select conformity_rules_snapshot --profiles-dir profiles',
+    dag=dag,
+)
+
+run_int_conformity_rules_scd2 = BashOperator(
+    task_id='run_int_conformity_rules_scd2',
+    bash_command=f'{dbt_base_cmd} run --select intermediate.int_conformity_rules_scd2 --profiles-dir profiles',
+    dag=dag,
+)
+
+test_int_conformity_rules_scd2 = BashOperator(
+    task_id='test_int_conformity_rules_scd2',
+    bash_command=f'{dbt_base_cmd} test --select intermediate.int_conformity_rules_scd2 --profiles-dir profiles',
+    dag=dag,
+)
+
+run_dim_conformity_rules = BashOperator(
+    task_id='run_dim_conformity_rules',
+    bash_command=f'{dbt_base_cmd} run --select marts.dim_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+test_dim_conformity_rules = BashOperator(
+    task_id='test_dim_conformity_rules',
+    bash_command=f'{dbt_base_cmd} test --select marts.dim_conformity_rules --profiles-dir profiles',
+    dag=dag,
+)
+
+
+
+# =====================================================
 # DÉFINITION DES DÉPENDANCES
 # =====================================================
 
@@ -171,3 +243,10 @@ test_int_devices >> run_devices_snapshot >> test_devices_snapshot
 test_devices_snapshot >> run_int_devices_scd2 >> test_int_devices_scd2
 test_int_devices_scd2 >> run_dim_devices >> test_dim_devices
 
+# Pipeline Règles Métier (dépend des sites)
+test_dim_sites >> run_conformity_rules_seed
+run_conformity_rules_seed >> run_stg_conformity_rules >> test_stg_conformity_rules
+test_stg_conformity_rules >> run_int_conformity_rules >> test_int_conformity_rules
+test_int_conformity_rules >> run_conformity_rules_snapshot >> test_conformity_rules_snapshot
+test_conformity_rules_snapshot >> run_int_conformity_rules_scd2 >> test_int_conformity_rules_scd2
+test_int_conformity_rules_scd2 >> run_dim_conformity_rules >> test_dim_conformity_rules
