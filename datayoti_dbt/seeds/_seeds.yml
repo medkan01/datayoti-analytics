@@ -1,0 +1,75 @@
+version: 2
+
+seeds:
+  - name: conformity_rules
+    description: "Données de référence pour les règles de conformité métier. Ce fichier CSV contient les seuils et critères de validation pour chaque type de métrique (température, humidité, stabilité, etc.) par site."
+    columns:
+      - name: id
+        description: "Identifiant unique de la règle de conformité."
+        tests:
+          - not_null
+          - unique
+      
+      - name: site_ref
+        description: "Référence du site auquel la règle s'applique (doit correspondre à un site existant)."
+        tests:
+          - not_null
+      
+      - name: metric_type
+        description: |
+          Type de métrique surveillée par cette règle:
+          - temperature_range: Plage de température acceptable (min_allowed à max_allowed)
+          - humidity_ceiling: Seuil maximum d'humidité (max_allowed seulement)
+          - humidity_floor: Seuil minimum d'humidité (min_allowed seulement)
+          - temperature_stability: Variation thermique maximale autorisée sur une journée
+          - uptime_ratio: Pourcentage minimum de disponibilité des mesures
+          - data_validity: Seuils de plausibilité des données
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique. NULL si pas de limite inférieure."
+        
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique. NULL si pas de limite supérieure."
+        
+      - name: criticality
+        description: |
+          Niveau de criticité indiquant l'impact du non-respect de la règle:
+          - HIGH: Impact critique sur la qualité produit ou la sécurité sanitaire
+          - MEDIUM: Impact modéré sur la qualité ou risque opérationnel
+          - LOW: Impact faible, surveillance préventive
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      
+      - name: description
+        description: "Description détaillée de la règle incluant le contexte métier, les zones concernées et l'impact du dépassement des seuils."
+        tests:
+          - not_null
+      
+      - name: created_at
+        description: "Horodatage de création de la règle au format ISO 8601."
+        tests:
+          - not_null
+      
+      - name: updated_at
+        description: "Horodatage de dernière modification de la règle au format ISO 8601."
+        tests:
+          - not_null
+    
+    config:
+      # Configuration spécifique pour ce seed
+      column_types:
+        id: integer
+        site_ref: varchar(50)
+        metric_type: varchar(50)
+        min_allowed: numeric
+        max_allowed: numeric
+        criticality: varchar(10)
+        description: text
+        created_at: timestamp
+        updated_at: timestamp
