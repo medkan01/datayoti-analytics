@@ -180,3 +180,149 @@ models:
             - device_sk
             - site_sk
             - event_day_sk
+
+  - name: int_conformity_rules
+    description: "Modèle intermédiaire pour les règles de conformité avec enrichissement par jointure avec les sites. Filtre les règles qui ont un site_ref valide dans la dimension des sites."
+    columns:
+      - name: rule_id
+        description: "Identifiant technique unique de la règle de conformité, provenant de la source brute."
+        tests:
+          - not_null
+          - unique
+      - name: site_source_id
+        description: "Identifiant technique du site auquel la règle s'applique, résolu via la jointure avec site_dimension. Ne peut pas être NULL car le modèle filtre les règles sans site valide."
+        tests:
+          - not_null
+      - name: metric_type
+        description: "Type de métrique surveillée (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique (NULL si pas de limite inférieure)."
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique (NULL si pas de limite supérieure)."
+      - name: criticality_level
+        description: "Niveau de criticité de la règle (LOW, MEDIUM, HIGH)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: description
+        description: "Description détaillée de la règle de conformité et de son impact métier."
+        tests:
+          - not_null
+      - name: created_ts
+        description: "Horodatage de création de la règle dans le système."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de la règle."
+        tests:
+          - not_null
+
+  - name: int_conformity_rules_scd2
+    description: "Modèle intermédiaire implémentant SCD2 (Slowly Changing Dimension Type 2) pour les règles de conformité basé sur les snapshots dbt."
+    columns:
+      - name: rule_sk
+        description: "Clé surrogate unique pour la dimension règle de conformité dans le DWH (générée automatiquement par le snapshot dbt)."
+        tests:
+          - not_null
+          - unique
+      - name: rule_id
+        description: "Identifiant technique unique de la règle de conformité, provenant de la source brute."
+        tests:
+          - not_null
+      - name: site_source_id
+        description: "Identifiant technique du site auquel la règle s'applique, provenant de la source brute."
+        tests:
+          - not_null
+      - name: metric_type
+        description: "Type de métrique surveillée (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique (NULL si pas de limite inférieure)."
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique (NULL si pas de limite supérieure)."
+      - name: criticality_level
+        description: "Niveau de criticité de la règle (LOW, MEDIUM, HIGH)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: description
+        description: "Description détaillée de la règle de conformité et de son impact métier."
+        tests:
+          - not_null
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide (généré par le snapshot dbt)."
+        tests:
+          - not_null
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel, généré par le snapshot dbt)."
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cette règle (calculé à partir de valid_to_ts)."
+        tests:
+          - not_null
+
+  - name: int_daily_site_env
+    description: "Modèle intermédiaire pour l'agrégation des conditions environnementales par site et par jour. Consolide les métriques de tous les capteurs d'un site pour obtenir une vue d'ensemble des conditions environnementales et calculer les métriques dérivées nécessaires à l'évaluation de conformité."
+    columns:
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+      
+      - name: event_day_sk
+        description: "Date de l'événement tronquée au jour."
+        tests:
+          - not_null
+      
+      - name: min_temperature_celsius_on_site
+        description: "Température minimale moyenne mesurée sur le site pour la journée (moyenne des minimums par capteur)."
+      
+      - name: max_temperature_celsius_on_site
+        description: "Température maximale moyenne mesurée sur le site pour la journée (moyenne des maximums par capteur)."
+      
+      - name: temperature_range_on_site
+        description: "Plage de température du site calculée comme la différence entre max et min des températures moyennes."
+      
+      - name: min_humidity_percentage_on_site
+        description: "Humidité minimale moyenne mesurée sur le site pour la journée (moyenne des minimums par capteur)."
+      
+      - name: max_humidity_percentage_on_site
+        description: "Humidité maximale moyenne mesurée sur le site pour la journée (moyenne des maximums par capteur)."
+      
+      - name: humidity_range_on_site
+        description: "Plage d'humidité du site calculée comme la différence entre max et min des humidités moyennes."
+      
+      - name: temperature_stability_on_site
+        description: "Stabilité thermique du site (écart absolu entre températures max et min moyennes). Plus la valeur est faible, plus la température est stable."
+      
+      - name: uptime_ratio_on_site
+        description: "Ratio de disponibilité des mesures sur le site (total_readings / 1440 lectures attendues par jour), plafonné à 1.0."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              inclusive: true
+      
+      - name: data_validity_on_site
+        description: "Indicateur de validité des données (1.0 si toutes les conditions de plausibilité sont respectées, 0.0 sinon). Basé sur temp_min > 5°C, humidity_min > 10% et au moins 50 lectures."
+        tests:
+          - accepted_values:
+              values: [0.0, 1.0]
+      
+      - name: total_readings_on_site
+        description: "Nombre total de lectures de capteurs reçues sur le site pour la journée (somme de tous les capteurs)."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - site_sk
+            - event_day_sk
