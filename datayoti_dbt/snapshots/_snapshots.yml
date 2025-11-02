@@ -95,3 +95,70 @@ snapshots:
       
       - name: dbt_valid_to
         description: "Horodatage indiquant jusqu'à quand cette version est valide (NULL pour la version actuelle, généré automatiquement par dbt)."
+
+  - name: conformity_rules_snapshot
+    description: "Snapshot des règles de conformité métier implémentant SCD2 automatiquement. Capture tous les changements sur les attributs des règles avec horodatage pour maintenir l'historique des seuils et leur évolution."
+    columns:
+      - name: rule_id
+        description: "Identifiant technique unique de la règle de conformité, provenant de la source brute. Utilisé comme clé unique pour le snapshot."
+        tests:
+          - not_null
+      
+      - name: site_source_id
+        description: "Identifiant technique du site auquel la règle s'applique, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: metric_type
+        description: "Type de métrique surveillée (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique (NULL si pas de limite inférieure)."
+        
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique (NULL si pas de limite supérieure)."
+        
+      - name: criticality_level
+        description: "Niveau de criticité de la règle (LOW, MEDIUM, HIGH)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      
+      - name: description
+        description: "Description détaillée de la règle de conformité et de son impact métier."
+        tests:
+          - not_null
+      
+      - name: created_ts
+        description: "Horodatage de création de la règle dans le système source."
+        tests:
+          - not_null
+      
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de la règle dans le système source. Utilisé par la stratégie timestamp du snapshot."
+        tests:
+          - not_null
+      
+      - name: dbt_scd_id
+        description: "Clé surrogate générée automatiquement par dbt pour chaque version de l'enregistrement de règle."
+        tests:
+          - not_null
+          - unique
+      
+      - name: dbt_updated_at
+        description: "Horodatage de création de cette version de l'enregistrement par le snapshot dbt."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_from
+        description: "Horodatage indiquant à partir de quand cette version de la règle est valide (généré automatiquement par dbt)."
+        tests:
+          - not_null
+      
+      - name: dbt_valid_to
+        description: "Horodatage indiquant jusqu'à quand cette version de la règle est valide (NULL pour la version actuelle, généré automatiquement par dbt)."
