@@ -91,6 +91,18 @@ test_int_daily_sensor_health = BashOperator(
     dag=dag,
 )
 
+run_int_daily_site_env = BashOperator(
+    task_id='run_int_daily_site_env',
+    bash_command=f'{dbt_base_cmd} run --select intermediate.int_daily_site_env --profiles-dir profiles',
+    dag=dag,
+)
+
+test_int_daily_site_env = BashOperator(
+    task_id='test_int_daily_site_env',
+    bash_command=f'{dbt_base_cmd} test --select intermediate.int_daily_site_env --profiles-dir profiles',
+    dag=dag,
+)
+
 # =====================================================
 # TABLES DE FAITS FINALES
 # =====================================================
@@ -119,6 +131,30 @@ test_fct_daily_sensor_health = BashOperator(
     dag=dag,
 )
 
+run_fct_daily_site_compliance = BashOperator(
+    task_id='run_fct_daily_site_compliance',
+    bash_command=f'{dbt_base_cmd} run --select marts.fct_daily_site_compliance --profiles-dir profiles',
+    dag=dag,
+)
+
+test_fct_daily_site_compliance = BashOperator(
+    task_id='test_fct_daily_site_compliance',
+    bash_command=f'{dbt_base_cmd} test --select marts.fct_daily_site_compliance --profiles-dir profiles',
+    dag=dag,
+)
+
+run_vw_daily_site_compliance_summary = BashOperator(
+    task_id='run_vw_daily_site_compliance_summary',
+    bash_command=f'{dbt_base_cmd} run --select marts.vw_daily_site_compliance_summary --profiles-dir profiles',
+    dag=dag,
+)
+
+test_vw_daily_site_compliance_summary = BashOperator(
+    task_id='test_vw_daily_site_compliance_summary',
+    bash_command=f'{dbt_base_cmd} test --select marts.vw_daily_site_compliance_summary --profiles-dir profiles',
+    dag=dag,
+)
+
 # =====================================================
 # DÉFINITION DES DÉPENDANCES
 # =====================================================
@@ -135,3 +171,12 @@ test_int_daily_sensor_reading >> run_fct_daily_sensor_reading >> test_fct_daily_
 check_raw_sources >> run_stg_device_heartbeats >> test_stg_device_heartbeats
 test_stg_device_heartbeats >> run_int_daily_sensor_health >> test_int_daily_sensor_health
 test_int_daily_sensor_health >> run_fct_daily_sensor_health >> test_fct_daily_sensor_health
+
+# Pipeline Site Environment (dépend des lectures de capteurs)
+test_int_daily_sensor_reading >> run_int_daily_site_env >> test_int_daily_site_env
+
+# Pipeline Conformité Site (dépend de l'environnement site)
+test_int_daily_site_env >> run_fct_daily_site_compliance >> test_fct_daily_site_compliance
+
+# Vue de synthèse conformité (dépend du fait de conformité)
+test_fct_daily_site_compliance >> run_vw_daily_site_compliance_summary >> test_vw_daily_site_compliance_summary
