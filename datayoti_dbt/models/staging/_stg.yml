@@ -125,3 +125,54 @@ models:
         description: "Horodatage de dernière mise à jour du site."
         tests:
           - not_null
+
+  - name: stg_conformity_rules
+    description: "Modèle de staging pour les règles de conformité métier avec nettoyage et standardisation des types de données. Les règles définissent les seuils acceptables pour différents types de métriques (température, humidité, stabilité, etc.) par site."
+    columns:
+      - name: rule_id
+        description: "Identifiant technique unique de la règle de conformité (entier)."
+        tests:
+          - not_null
+          - unique
+      - name: site_ref
+        description: "Référence du site auquel la règle s'applique (doit correspondre à un site_ref existant dans stg_sites)."
+        tests:
+          - not_null
+      - name: metric_type
+        description: "Type de métrique surveillée (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique (NULL si pas de limite inférieure)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -50
+              max_value: 100
+              inclusive: true
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique (NULL si pas de limite supérieure)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -50
+              max_value: 100
+              inclusive: true
+      - name: criticality_level
+        description: "Niveau de criticité de la règle (LOW, MEDIUM, HIGH)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: description
+        description: "Description détaillée de la règle de conformité et de son impact métier."
+        tests:
+          - not_null
+      - name: created_ts
+        description: "Horodatage de création de la règle dans le système."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Horodatage de dernière mise à jour de la règle."
+        tests:
+          - not_null
