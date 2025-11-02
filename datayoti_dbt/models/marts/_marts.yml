@@ -105,6 +105,173 @@ models:
       - name: day_name
         description: "Nom du jour (ex: 'Monday')."
 
+  - name: dim_conformity_rules
+    description: "Table dimensionnelle des règles de conformité métier définissant les seuils acceptables pour différents types de métriques par site. Implémente SCD2 pour le suivi des changements historiques basé sur les snapshots dbt."
+    columns:
+      - name: rule_sk
+        description: "Clé surrogate unique de la dimension des règles de conformité pour le DWH. C'est cette clé qui sera utilisée dans les faits pour référencer une règle."
+        tests:
+          - not_null
+          - unique
+      
+      - name: rule_id
+        description: "Identifiant technique unique de la règle de conformité, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: site_source_id
+        description: "Identifiant technique du site auquel la règle s'applique, provenant de la source brute."
+        tests:
+          - not_null
+      
+      - name: metric_type
+        description: "Type de métrique surveillée pour cette règle (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      
+      - name: min_allowed
+        description: "Valeur minimale autorisée pour la métrique (NULL si pas de limite inférieure). Par exemple 18°C pour temperature_range ou 35% pour humidity_floor."
+        
+      - name: max_allowed
+        description: "Valeur maximale autorisée pour la métrique (NULL si pas de limite supérieure). Par exemple 24°C pour temperature_range ou 60% pour humidity_ceiling."
+        
+      - name: criticality_level
+        description: "Niveau de criticité de la règle indiquant l'impact du non-respect (LOW, MEDIUM, HIGH)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH']
+      
+      - name: description
+        description: "Description détaillée de la règle de conformité, son contexte métier et l'impact du dépassement des seuils."
+        tests:
+          - not_null
+      
+      - name: valid_from_ts
+        description: "Indicateur SCD2: Horodatage indiquant à partir de quand cet enregistrement est valide."
+        tests:
+          - not_null
+
+      - name: valid_to_ts
+        description: "Indicateur SCD2: Horodatage indiquant jusqu'à quand cet enregistrement est valide (NULL pour l'enregistrement actuel)."
+
+      - name: is_current
+        description: "Indicateur SCD2: Vrai si cet enregistrement est le plus récent pour cette règle."
+        tests:
+          - not_null
+
+  - name: vw_daily_site_compliance_summary
+    description: "Vue de synthèse quotidienne du score de conformité par site. Agrège toutes les métriques de conformité pour fournir un tableau de bord exécutif avec taux de conformité global et nombre de violations critiques."
+    columns:
+      - name: site_sk
+        description: "Clé surrogate du site (référence vers dim_sites)."
+        tests:
+          - not_null
+      
+      - name: event_day_sk
+        description: "Date d'évaluation de la conformité."
+        tests:
+          - not_null
+      
+      - name: compliance_rate
+        description: "Taux de conformité global du site pour la journée (0.0 à 1.0). Calculé comme le pourcentage de métriques conformes sur le total des métriques évaluées."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0.0
+              max_value: 1.0
+              inclusive: true
+      
+      - name: nb_critical_violations
+        description: "Nombre de violations critiques (criticality_level = 'HIGH') détectées sur le site pour la journée. Indicateur d'alertes prioritaires."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10
+              inclusive: true
+      
+      - name: total_metrics_evaluated
+        description: "Nombre total de métriques évaluées pour le site à cette date. Permet de contextualiser le taux de conformité."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 20
+              inclusive: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - site_sk
+            - event_day_sk
+
+  - name: fct_daily_site_compliance
+    description: "Table de faits pour l'évaluation quotidienne de la conformité environnementale par site selon les règles métier définies. Chaque ligne représente l'évaluation d'une métrique spécifique pour un site donné à une date donnée."
+    columns:
+      - name: rule_sk
+        description: "Clé surrogate de la règle (référence vers dim_conformity_rules)."
+        tests:
+          - not_null
+      
+      - name: event_day_sk
+        description: "Date de l'évaluation de conformité."
+        tests:
+          - not_null
+      
+      - name: metric_type
+        description: "Type de métrique évaluée (temperature_range, humidity_ceiling, humidity_floor, temperature_stability, uptime_ratio, data_validity)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['temperature_range', 'humidity_ceiling', 'humidity_floor', 'temperature_stability', 'uptime_ratio', 'data_validity']
+      
+      - name: min_temperature_celsius_on_site
+        description: "Température minimale moyenne mesurée sur le site pour la journée (pour contexte et traçabilité)."
+      
+      - name: max_temperature_celsius_on_site
+        description: "Température maximale moyenne mesurée sur le site pour la journée (pour contexte et traçabilité)."
+      
+      - name: temperature_range_on_site
+        description: "Plage de température du site (max - min des températures moyennes)."
+      
+      - name: min_humidity_percentage_on_site
+        description: "Humidité minimale moyenne mesurée sur le site pour la journée (pour contexte et traçabilité)."
+      
+      - name: max_humidity_percentage_on_site
+        description: "Humidité maximale moyenne mesurée sur le site pour la journée (pour contexte et traçabilité)."
+      
+      - name: humidity_range_on_site
+        description: "Plage d'humidité du site (max - min des humidités moyennes)."
+      
+      - name: total_readings_on_site
+        description: "Nombre total de lectures de capteurs reçues sur le site pour la journée."
+      
+      - name: temperature_stability_on_site
+        description: "Stabilité thermique du site (écart absolu entre températures max et min moyennes)."
+      
+      - name: uptime_ratio_on_site
+        description: "Ratio de disponibilité des mesures sur le site (0.0 à 1.0)."
+      
+      - name: data_validity_on_site
+        description: "Indicateur de validité des données sur le site (0.0 ou 1.0)."
+      
+      - name: is_compliant
+        description: |
+          Indicateur booléen de conformité de la métrique selon les règles définies:
+          - true: La métrique respecte les seuils définis
+          - false: La métrique dépasse les seuils autorisés
+          - null: Impossible d'évaluer (données manquantes ou type métrique non reconnu)
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - rule_sk
+            - event_day_sk
+            - metric_type
+
   - name: fct_daily_sensor_reading
     description: "Table de faits pour les lectures quotidiennes des capteurs de température et d'humidité. Basée sur int_daily_sensor_reading avec jointures temporelles SCD2."
     columns:
